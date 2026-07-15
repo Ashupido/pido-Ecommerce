@@ -10,36 +10,34 @@ router.post('/create/:userId', async (req, res) => {
       return res.status(400).json({ error: 'User ID is required' });
     }
     
-    const cart = await Cart.findOne({ user: req.params.userId }).populate('items.product');
+    const { items } = req.body;
     
-    if (!cart || cart.items.length === 0) {
+    if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
     
     let total = 0;
-    const orderItems = cart.items.map(item => {
-      total += item.product.price * item.quantity;
+    const orderItems = items.map(item => {
+      total += item.price * item.quantity;
       return {
-        product: item.product._id,
+        product: item._id,
         quantity: item.quantity,
-        price: item.product.price
+        price: item.price
       };
     });
     
     const order = new Order({
       user: req.params.userId,
       items: orderItems,
-      total: total
+      total: total,
+      status: 'pending'
     });
     
     await order.save();
     
-    // Clear cart after order
-    cart.items = [];
-    await cart.save();
-    
     res.status(201).json(order);
   } catch (error) {
+    console.error('Order creation error:', error);
     res.status(500).json({ error: 'Failed to create order' });
   }
 });

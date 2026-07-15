@@ -1,403 +1,217 @@
-# Pido E-Commerce Platform - Developer Guide
+# Pido E-commerce
 
-A full-stack e-commerce application built with Node.js, Express, MongoDB, and React. This guide explains how everything works for junior developers.
+Pido is a full-stack e-commerce application with customer, admin, and seller experiences. The project uses React + Vite on the frontend and Node.js + Express + MongoDB on the backend.
 
-## 📋 Table of Contents
-1. [Tech Stack](#tech-stack)
-2. [Project Structure](#project-structure)
-3. [Setup & Installation](#setup--installation)
-4. [How It Works](#how-it-works)
-5. [API Endpoints](#api-endpoints)
-6. [Database Models](#database-models)
-7. [Authentication Flow](#authentication-flow)
-8. [File Explanations](#file-explanations)
+## Highlights
 
----
+- Customer storefront for browsing products, cart, and orders
+- Admin dashboard for analytics, user management, order management, and product management
+- Seller workspace for catalog and inventory management
+- JWT-based authentication and role-based access control
+- Responsive UI built with Tailwind CSS
 
-## 🛠️ Tech Stack
+## Tech stack
 
-**Backend:**
-- **Node.js** - JavaScript runtime
-- **Express** - Web server framework
-- **MongoDB** - NoSQL database
-- **Mongoose** - MongoDB database library
-- **bcryptjs** - Password hashing
-- **JWT (jsonwebtoken)** - Authentication tokens
-- **CORS** - Cross-origin requests
+### Frontend
+- React 19
+- Vite
+- React Router
+- Axios
+- Tailwind CSS
+- Lucide icons
 
-**Frontend:**
-- **React** - UI library
-- **Vite** - Build tool
-- **Axios** - HTTP client
-- **Tailwind CSS** - Styling
+### Backend
+- Node.js
+- Express
+- MongoDB + Mongoose
+- JWT
+- bcryptjs
+- CORS
 
----
+## Project structure
 
-## 📁 Project Structure
-
-```
+```text
 pido-ecommerce/
 ├── backend/
-│   ├── models/              # Database schemas
-│   │   ├── User.js         # User data structure
-│   │   ├── Product.js      # Product data structure
-│   │   ├── Cart.js         # Shopping cart
-│   │   └── Order.js        # Orders
-│   ├── routes/             # API endpoints
-│   │   ├── authRoutes.js   # Login/Register
-│   │   ├── productRoutes.js # Product operations
-│   │   ├── cartRoutes.js   # Cart operations
-│   │   └── orderRoutes.js  # Order operations
-│   ├── middleware/         # Helper functions
-│   │   └── auth.js         # JWT verification
-│   ├── .env                # Environment variables
-│   └── server.js           # Main server file
-│
-└── frontend/
-    └── src/
-        ├── components/     # Reusable components
-        │   └── Navbar.jsx
-        ├── pages/         # Page components
-        │   └── Products.jsx
-        ├── services/      # API calls
-        │   └── api.js
-        ├── App.jsx        # Main app component
-        └── main.jsx       # Entry point
+│   ├── createAdmin.js
+│   ├── seedProducts.js
+│   ├── server.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   └── rbac.js
+│   ├── models/
+│   │   ├── ActivityLog.js
+│   │   ├── Cart.js
+│   │   ├── Order.js
+│   │   ├── Product.js
+│   │   └── User.js
+│   ├── routes/
+│   │   ├── adminRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── cartRoutes.js
+│   │   ├── managerRoutes.js
+│   │   ├── orderRoutes.js
+│   │   └── productRoutes.js
+│   └── utils/
+│       ├── activityLogger.js
+│       └── roles.js
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+└── package.json
 ```
 
----
+## Getting started
 
-## 🚀 Setup & Installation
+### 1) Prerequisites
+- Node.js 18+
+- MongoDB instance (local or Atlas)
+- npm
 
-### Prerequisites
-- Node.js (v14+)
-- MongoDB (local or Atlas)
-- npm or yarn
+### 2) Backend setup
 
-### Backend Setup
-
-1. **Navigate to backend folder:**
 ```bash
 cd backend
-```
-
-2. **Install dependencies:**
-```bash
 npm install
 ```
 
-3. **Create `.env` file with:**
-```
-MONGODB_URI=mongodb://localhost:27017/pido_ecommerce
-JWT_SECRET=your-secret-key-123
-NODE_ENV=development
+Create a `.env` file in the backend folder:
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/pido_ecommerce
+JWT_SECRET=your-secret-key
 ```
 
-4. **Start MongoDB** (if running locally):
-```bash
-mongod
-```
+Start the backend:
 
-5. **Start the server:**
 ```bash
 node server.js
 ```
-✅ You should see: `Server running on port 5000`
 
-### Frontend Setup
+The server runs on port `5000`.
 
-1. **Navigate to frontend folder:**
+### 3) Frontend setup
+
 ```bash
 cd frontend
-```
-
-2. **Install dependencies:**
-```bash
 npm install
-```
-
-3. **Start development server:**
-```bash
 npm run dev
 ```
-✅ Open `http://localhost:5173` in your browser
 
----
+Open the app at `http://localhost:5173`.
 
-## 🎯 How It Works
+## Authentication and roles
 
-### Overall Flow
+The app supports these roles:
 
-```
-User Browser (Frontend)
-    ↓
-Sends HTTP Request (with JWT token)
-    ↓
-Express Server (Backend)
-    ↓
-Database (MongoDB)
-    ↓
-Returns Response (JSON)
-    ↓
-Frontend displays data
-```
+- `user` — customer experience
+- `seller` — seller workspace for catalog management
+- `admin` — full control panel
 
-### Example: User Registration
+## Authentication Flow (Updated)
 
-1. **User fills form** → Frontend collects name, email, password
-2. **Frontend sends POST request** → `/api/auth/register` with data
-3. **Backend receives request** → Validates input
-4. **Password is hashed** → Using bcryptjs (secure storage)
-5. **User saved to MongoDB** → New document created
-6. **JWT token generated** → Secret key creates token
-7. **Response sent back** → Token + User info
-8. **Frontend stores token** → In localStorage
-9. **Token sent with future requests** → Proves user is authenticated
+The authentication system has been refactored to improve structure, security, and reliability:
 
-### Example: View Products
+- Introduced a dedicated controller in `backend/controllers/authController.js` to handle user registration and login logic, and connected it through `backend/routes/authRoutes.js`.
+- Strengthened JWT authentication in `backend/middleware/auth.js` and role-based access control in `backend/middleware/rbac.js`, ensuring all protected routes consistently attach the authenticated user.
+- Improved the authentication experience in `frontend/src/pages/Login.jsx` and `frontend/src/pages/Register.jsx` with stronger validation, clearer form handling, and better feedback.
 
-1. **User navigates to Products page**
-2. **Frontend sends GET request** → `/api/products`
-3. **Backend queries MongoDB** → Finds all products
-4. **Database returns data** → Array of products
-5. **Frontend displays products** → Shows name, price, description
+### Key improvements
 
----
+- Centralized authentication logic for easier maintenance
+- Secure password handling using hashing
+- Consistent user context across protected routes
+- Cleaner and more responsive login/register UI
 
-## 📡 API Endpoints
+### Authentication architecture
 
-### Authentication Routes `/api/auth`
+- JWT-based authentication (stateless)
+- Middleware for route protection
+- Role-based authorization (admin, seller, user)
+- Token stored in localStorage (frontend)
 
-#### Register User
-```
-POST /api/auth/register
-Body: { name, email, password }
-Response: { token, user: { id, name, email } }
+### Register / login
+- Register a new account at `/register`
+- Login at `/login`
+
+### Create admin account
+A helper script is included:
+
+```bash
+cd backend
+node createAdmin.js --email admin@example.com --password MySecret123 --name "Site Admin"
 ```
 
-#### Login User
-```
-POST /api/auth/login
-Body: { email, password }
-Response: { token, user: { id, name, email } }
-```
+This creates or promotes a user to `admin`.
 
-### Product Routes `/api/products`
+### Create seller account
+You can promote an existing user by updating the role in MongoDB:
 
-#### Get All Products
-```
-GET /api/products
-Response: [{ _id, name, price, description }, ...]
-```
-
-#### Add New Product
-```
-POST /api/products
-Body: { name, price, description }
-Response: { _id, name, price, description }
-```
-
-### Cart Routes `/api/cart`
-
-#### Get User's Cart
-```
-GET /api/cart/:userId
-Response: { user, items: [{ product, quantity }, ...] }
-```
-
-#### Add Item to Cart
-```
-POST /api/cart/add
-Body: { userId, productId, quantity }
-Response: { user, items: [...] }
-```
-
-### Order Routes `/api/orders`
-
-#### Create Order from Cart
-```
-POST /api/orders/create/:userId
-Response: { _id, user, items, total, status }
-```
-
-#### Get User's Orders
-```
-GET /api/orders/:userId
-Response: [{ _id, user, items, total, status }, ...]
-```
-
----
-
-## 🗄️ Database Models
-
-### User Model
 ```javascript
-{
-  _id: ObjectId,
-  name: String,
-  email: String (unique),
-  password: String (hashed)
-}
+db.users.updateOne({ email: "seller@example.com" }, { $set: { role: "seller" } })
 ```
 
-### Product Model
-```javascript
-{
-  _id: ObjectId,
-  name: String,
-  price: Number,
-  description: String
-}
+## Main routes
+
+- `/products` — storefront
+- `/product/:id` — product details
+- `/cart` — cart
+- `/orders` — customer orders
+- `/admin` and `/admin/dashboard` — admin control panel
+- `/seller` and `/seller/dashboard` — seller workspace
+
+## Backend API overview
+
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+
+### Products
+- `GET /api/products`
+- `POST /api/products`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
+
+### Cart
+- `GET /api/cart/:userId`
+- `POST /api/cart/add`
+
+### Orders
+- `POST /api/orders/create/:userId`
+- `GET /api/orders/:userId`
+
+### Admin
+- `GET /api/admin/stats/dashboard`
+- `GET /api/admin/users`
+- `PUT /api/admin/users/:id/role`
+- `DELETE /api/admin/users/:id`
+- `GET /api/admin/orders`
+- `PUT /api/admin/orders/:id/status`
+- `GET /api/admin/logs/activity`
+
+## Notes
+
+- The frontend stores auth state in `localStorage`.
+- Passwords are hashed before being saved.
+- Admin and seller access are enforced in the frontend routes and backend role middleware.
+
+## Build
+
+To build the frontend:
+
+```bash
+cd frontend
+npm run build
 ```
 
-### Cart Model
-```javascript
-{
-  _id: ObjectId,
-  user: ObjectId (ref: User),
-  items: [
-    {
-      product: ObjectId (ref: Product),
-      quantity: Number
-    }
-  ]
-}
-```
-
-### Order Model
-```javascript
-{
-  _id: ObjectId,
-  user: ObjectId (ref: User),
-  items: [
-    {
-      product: ObjectId (ref: Product),
-      quantity: Number,
-      price: Number
-    }
-  ],
-  total: Number,
-  status: String (pending, paid, shipped, delivered),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
----
-
-## 🔐 Authentication Flow
-
-### How JWT Works
-
-```
-1. User logs in with email + password
-   ↓
-2. Backend checks password (compares hashed versions)
-   ↓
-3. Backend creates JWT token: jwt.sign({ userId }, SECRET_KEY)
-   ↓
-4. Token sent to frontend
-   ↓
-5. Frontend stores in localStorage
-   ↓
-6. For next request, frontend sends: Authorization: Bearer <token>
-   ↓
-7. Backend verifies token signature
-   ↓
-8. If valid → request allowed, if expired → return 401 error
-```
-
-### Password Security
-
-```
-User enters: "password123"
-   ↓
-bcryptjs generates random salt
-   ↓
-hash = bcrypt.hash(password, salt)
-   ↓
-Result: "$2a$10$..." (different every time!)
-   ↓
-Stored in database (NOT the actual password)
-   ↓
-When login: bcrypt.compare(entered_password, hashed_password)
-```
-
----
-
-## 📄 File Explanations
-
-### Backend Files
-
-#### `server.js` - Main Server Entry Point
-- Imports Express and creates app
-- Connects to MongoDB
-- Sets up middleware (JSON parsing, CORS)
-- Registers all API routes
-- Starts server on port 5000
-
-#### `models/User.js` - User Database Schema
-- Defines user structure (name, email, password)
-- **Pre-save hook** - Hashes password before saving
-- **comparePassword method** - Checks if password is correct
-
-#### `models/Product.js` - Product Database Schema
-- Defines product structure (name, price, description)
-
-#### `models/Cart.js` - Shopping Cart Schema
-- References user and products
-- Stores quantity for each product
-
-#### `models/Order.js` - Order Schema
-- References user and products
-- Tracks order total and status
-- Timestamps when created/updated
-
-#### `routes/authRoutes.js` - Authentication Endpoints
-- `/register` - Creates new user account
-- `/login` - Authenticates user and returns token
-- Validates input (password length, required fields)
-- Handles duplicate email error
-
-#### `routes/productRoutes.js` - Product Endpoints
-- `/` GET - Fetches all products
-- `/` POST - Creates new product
-- Validates price is positive
-
-#### `routes/cartRoutes.js` - Cart Endpoints
-- `/:userId` GET - Retrieves user's cart
-- `/add` POST - Adds product to cart
-- Updates quantity if product already in cart
-
-#### `routes/orderRoutes.js` - Order Endpoints
-- `/create/:userId` POST - Creates order from cart items
-- `/:userId` GET - Fetches all user orders
-- Clears cart after order created
-
-#### `middleware/auth.js` - JWT Verification
-- Extracts token from request header
-- Verifies token signature
-- Adds userId to request object
-- Rejects if token missing or invalid
-
-### Frontend Files
-
-#### `src/services/api.js` - API Client
-- Creates axios instance with base URL
-- Adds JWT token to every request automatically
-- Handles 401 errors (token expired)
-- Redirects to login if token invalid
-
-#### `src/App.jsx` - Main App Component
-- Renders Navbar and other pages
-- Manages routing
-
-#### `src/components/Navbar.jsx` - Navigation Bar
-- Shows user name if logged in
-- Logout button to clear token
-
-#### `src/pages/Products.jsx` - Products Page
-- Fetches and displays all products
 - Shows add to cart buttons
 
 ---
